@@ -1,0 +1,10 @@
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000002.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000003.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000007.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000009.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000016.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000021.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000026.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000027.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000032.jpg
+/home/alvinox/workspace/darknet/data/VOC/VOCdevkit/VOC2012/JPEGImages/2008_000034.jpg
