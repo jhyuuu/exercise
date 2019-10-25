@@ -42,6 +42,10 @@ target = torch.randn(10)
 target = target.view(1, -1)
 print('target', target)
 criterion = nn.MSELoss()
+
+for p in net.parameters():
+    print(p)
+
 optimizer = optim.Adam(net.parameters(), lr = learning_rate)
 
 cycles = 1001

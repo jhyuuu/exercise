@@ -1,0 +1,1 @@
+ python3 examples/mnist/run.py --batch_size=1
