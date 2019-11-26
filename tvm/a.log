@@ -1,0 +1,49 @@
+O=1 M=64
+DEBUG - INSTRUCTION 0: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x00000040, SRAM:0x0000
+	y: size=1, pad=[0, 0]
+	x: size=64, stride=64, pad=[0, 0]
+DEBUG - INSTRUCTION 1: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x00000080, SRAM:0x0040   64
+	y: size=1, pad=[0, 0]
+	x: size=64, stride=64, pad=[0, 0]
+
+O=2 M=64
+DEBUG - INSTRUCTION 0: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x00000040, SRAM:0x0000
+	y: size=1, pad=[0, 0]
+	x: size=128, stride=128, pad=[0, 0]
+DEBUG - INSTRUCTION 1: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x000000c0, SRAM:0x0080  128
+	y: size=1, pad=[0, 0]
+
+O=3 M=64
+DEBUG - INSTRUCTION 0: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x00000040, SRAM:0x0000
+	y: size=1, pad=[0, 0]
+	x: size=192, stride=192, pad=[0, 0]
+DEBUG - INSTRUCTION 1: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x00000100, SRAM:0x00c0
+	y: size=1, pad=[0, 0]
+	x: size=192, stride=192, pad=[0, 0]
+
+
+
+O=3 M=128
+DEBUG - INSTRUCTION 0: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x00000040, SRAM:0x0000
+	y: size=1, pad=[0, 0]
+	x: size=384, stride=384, pad=[0, 0]
+DEBUG - INSTRUCTION 1: LOAD ACC
+	dep - pop prev: 0, pop next: 0, push prev: 0, push next: 0
+	DRAM: 0x000001c0, SRAM:0x0180
+	y: size=1, pad=[0, 0]
+	x: size=384, stride=384, pad=[0, 0]
+

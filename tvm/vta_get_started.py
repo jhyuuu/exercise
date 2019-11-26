@@ -133,7 +133,7 @@ elif env.TARGET == "sim":
 # which is set by the :code:`vta_config.json` file to be a 32-bit integer.
 
 # Output channel factor m - total 64 x 16 = 1024 output channels
-m = 64
+m = 1024
 # Batch factor o - total 1 x 1 = 1
 o = 1
 # A placeholder tensor in tiled data format

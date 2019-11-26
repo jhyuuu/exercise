@@ -1,0 +1,5 @@
+"Resource: /home/alvinox/exercise/OCaml/my_project/my_prog.ml": "\"u\026\251*\169 7\169\018\242\225c\251\147\128"
+"Rule: ocaml: cmx* & o* -> native (%=my_prog )": "\204\235\209SL\146U\011\225%\0208\018{_v"
+"Rule: ocaml dependencies ml (%=my_prog )": "\191FW\196\017\246\209\209/\224i\171Y\152\181\224"
+"Rule: ocaml: ml -> cmo & cmi (%=my_prog )": "\002<\155\194\141\241\186\142\209\242=]\025sF\007"
+"Rule: ocaml: ml & cmi -> cmx & o (%=my_prog )": "\226\180\204\192\198&k\146\152\136\023\139\000\201@V"
