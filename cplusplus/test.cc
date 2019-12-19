@@ -1,16 +1,25 @@
 #include <stdio.h>
+#include <map>
 
-#define TVM_REGISTER_API(OpName) TVM_REGISTER_GLOBAL(OpName)
-#define TVM_REGISTER_GLOBAL(OpName) printf("ppp "#OpName"")
+typedef struct A {
+  int var = 11;
+} a;
 
-#define TVM_STR_CONCAT_(__x, __y) __x##__y
-#define TVM_STR_CONCAT(__x, __y) TVM_STR_CONCAT_(__x, __y)
 
 int main() {
-    TVM_REGISTER_API(aaaa);
-    // equal to 
-    // printf("ppp aaaa");
+    A a0;
+    a a1;
+    a1.var = 22;
+    printf("%d\n", a0.var);
+    printf("%d\n", a1.var);
 
-    printf(TVM_STR_CONCAT(mmm, nnn));
+    static std::map<char, int> BinopPrecedence;
+    int& a = BinopPrecedence['c'];
+    printf("a: %d\n", a);
+    a = 1;
+    for (auto p : BinopPrecedence) {
+	printf("%c:%d\n", p.first, p.second);
+    }
+
     return 0;
 }
