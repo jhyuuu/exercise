@@ -296,7 +296,6 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
         case '(':
             return ParseParenExpr();
         default:
-            printf("11111: %c", CurTok);
             return LogError("unknown token when expecting an expression");
     }
 }
@@ -405,9 +404,25 @@ static std::unique_ptr<llvm::Module> TheModule; // 用于保存IR
 static std::map<std::string, llvm::Value*> NamedValues;
 static std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
 static std::unique_ptr<llvm::orc::KaleidoscopeJIT> TheJIT;
+static std::map<std::string, std::unique_ptr<PrototypeAST> > FunctionProtos;
 
 llvm::Value* LogErrorV(const char* str) {
     LogError(str);
+    return nullptr;
+}
+
+llvm::Function* getFunction(std::string Name) {
+    // First, see if the function has already been added to the current module.
+    if (auto* F = TheModule->getFunction(Name))
+        return F;
+
+    // If not, check whether we can codegen the declaration from some existing
+    // prototype.
+    auto FI = FunctionProtos.find(Name);
+    if (FI != FunctionProtos.end())
+        return FI->second->codegen();
+
+    // If no existing prototype exists, return null.
     return nullptr;
 }
 
@@ -444,7 +459,8 @@ llvm::Value* BinaryExprAST::codegen() {
 }
 
 llvm::Value* CallExprAST::codegen() {
-    llvm::Function* CalleeF = TheModule->getFunction(Callee);
+    // Look up the name in the global module table.
+    llvm::Function* CalleeF = getFunction(Callee);
     if (!CalleeF) {
         char buf[128];
         sprintf(buf, "Unknown function referenced: '%s'", Callee.c_str());
@@ -483,10 +499,17 @@ llvm::Function* PrototypeAST::codegen() {
 }
 
 llvm::Function* FunctionAST::codegen() {
-    llvm::Function* TheFunction = TheModule->getFunction(Proto->getName());
 
-    if (!TheFunction)
-        TheFunction = Proto->codegen();
+    // llvm::Function* TheFunction = TheModule->getFunction(Proto->getName());
+
+    // if (!TheFunction)
+    //     TheFunction = Proto->codegen();
+
+    // Transfer ownership of the prototype to the FunctionProtos map, but keep a
+    // reference to it for use below.
+    std::string Name = Proto->getName();
+    FunctionProtos[Name] = std::move(Proto);
+    llvm::Function* TheFunction = getFunction(Name);
 
     if (!TheFunction)
         return nullptr;
@@ -529,6 +552,7 @@ llvm::Function* FunctionAST::codegen() {
 static void InitializeModuleAndPassManager() {
     // Open a new module
     TheModule = std::make_unique<llvm::Module>("my cool jit", TheContext);
+    TheModule->setDataLayout(TheJIT->getTargetMachine().createDataLayout());
 
     // Create a new pass manager attached to it.
     TheFPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
@@ -551,6 +575,8 @@ static void HandleDefinition() {
             fprintf(stderr, "Read function definition: ");
             FnIR->print(llvm::errs());
             fprintf(stderr, "\n");
+            TheJIT->addModule(std::move(TheModule));
+            InitializeModuleAndPassManager();
         }
     } else {
         getNextToken();
@@ -563,6 +589,7 @@ static void HandleExtern() {
             fprintf(stderr, "Read extern: ");
             FnIR->print(llvm::errs());
             fprintf(stderr, "\n");
+            FunctionProtos[ProtoAST->getName()] = std::move(ProtoAST);
         }
     } else {
         getNextToken();
@@ -571,16 +598,29 @@ static void HandleExtern() {
 
 static void HandleTopLevelExpression() {
   // Evaluate a top-level expression into an anonymous function.
-  if (auto FnAST = ParseTopLevelExpr()) {
-      if (llvm::Function* FnIR = FnAST->codegen()) {
-          fprintf(stderr, "Read top-level expression: ");
-          FnIR->print(llvm::errs());
-          fprintf(stderr, "\n");
-      }
-  } else {
-    // Skip token for error recovery.
-    getNextToken();
-  }
+    if (auto FnAST = ParseTopLevelExpr()) {
+        if (FnAST->codegen()) {
+            // JIT the module containing the anonymous expression, keeping a handle so
+            // we can free it later.
+            auto H = TheJIT->addModule(std::move(TheModule));
+            InitializeModuleAndPassManager();
+
+            // Search the JIT for the __anon_expr symbol.
+            auto ExprSymbol = TheJIT->findSymbol("__anonymous_expr");
+            assert (ExprSymbol && "Function not found");
+
+            // Get the symbol's address and cast it to the right type (takes no
+            // arguments, returns a double) so we can call it as a native function.
+            double (*FP) () = (double (*) ()) (intptr_t)cantFail(ExprSymbol.getAddress());
+            fprintf(stderr, "Evaluated to %f\n", FP());
+
+            // Delete the anonymous expression module from the JIT.
+            TheJIT->removeModule(H);
+        }
+    } else {
+        // Skip token for error recovery.
+        getNextToken();
+    }
 }
 
 static void MainLoop() {
@@ -598,6 +638,28 @@ static void MainLoop() {
     }
 }
 
+//===----------------------------------------------------------------------===//
+// "Library" functions that can be "extern'd" from user code.
+//===----------------------------------------------------------------------===//
+
+#ifdef _WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
+/// putchard - putchar that takes a double and returns 0.
+extern "C" DLLEXPORT double putchard(double X) {
+    fputc((char)X, stderr);
+    return 0;
+}
+
+/// printd - printf that takes a double prints it as "%f\n", returning 0.
+extern "C" DLLEXPORT double printd(double X) {
+    fprintf(stderr, "%f\n", X);
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
@@ -606,11 +668,15 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "ready> ");
     getNextToken();
 
-    TheModule = std::make_unique<llvm::Module>("my cool jit", TheContext);
+    // TheModule = std::make_unique<llvm::Module>("my cool jit", TheContext);
+
+    TheJIT = std::make_unique<llvm::orc::KaleidoscopeJIT>();
+
+    InitializeModuleAndPassManager();
 
     MainLoop();
 
-    TheModule->print(llvm::errs(), nullptr);
+    // TheModule->print(llvm::errs(), nullptr);
 
     return 0;
 }
