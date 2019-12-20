@@ -416,8 +416,11 @@ Value *NumberExprAST::codegen() {
 Value *VariableExprAST::codegen() {
   // Look this variable up in the function.
   Value *V = NamedValues[Name];
-  if (!V)
-    return LogErrorV("Unknown variable name");
+  if (!V) {
+        char buf[128];
+        sprintf(buf, "Unknown variable name: '%s'", Name.c_str());
+        LogErrorV(buf);
+  }
   return V;
 }
 
