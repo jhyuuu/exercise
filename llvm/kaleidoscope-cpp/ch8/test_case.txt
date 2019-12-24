@@ -1,0 +1,10 @@
+def average(x y) (x + y) * 0.5;
+# ctrl + D
+# clang++ main_gd.cpp output_gd.o -o main_gd
+# ./main_gd
+
+
+
+# ctrl + D
+# clang++ main.cpp output_gd.o -o main
+# ./main
