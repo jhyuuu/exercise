@@ -1,10 +1,10 @@
 package ast
 
 import (
-	_ "bytes"
-	_ "strings"
+    _ "bytes"
+    _ "strings"
 
-	"monkey/token"
+    "monkey/token"
 )
 
 type Node interface {
@@ -13,12 +13,12 @@ type Node interface {
 
 type Statement interface {
     Node
-	statementNode()
+    statementNode()
 }
 
 type Expression interface {
     Node
-	expressionNode()
+    expressionNode()
 }
 
 type Program struct {
@@ -27,10 +27,10 @@ type Program struct {
 
 func (p *Program) TokenLiteral() string {
     if len(p.Statements) > 0 {
-	    return p.Statements[0].TokenLiteral()
-	} else {
-	    return "0"
-	}
+        return p.Statements[0].TokenLiteral()
+    } else {
+        return "0"
+    }
 }
 
 // Statements
@@ -38,17 +38,17 @@ func (p *Program) TokenLiteral() string {
 type LetStatement struct {
     Token token.Token
     Name  *Identifier
-	Value Expression
+    Value Expression
 }
 
 func (ls *LetStatement) TokenLiteral() string {
-	return ls.Token.Literal
+    return ls.Token.Literal
 }
 func (ls *LetStatement) statementNode() { }
 
 type Identifier struct {
     Token token.Token
-	Value string
+    Value string
 }
 
 func (i *Identifier) TokenLiteral() string {
