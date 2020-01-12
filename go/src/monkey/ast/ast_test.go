@@ -7,7 +7,7 @@ import (
 
 func TestString(t *testing.T) {
     input := "let myVar = anotherVar;"
-    
+
     program := &Program {
         Statements: []Statement {
             &LetStatement {
