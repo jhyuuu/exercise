@@ -55,16 +55,20 @@ func New(l* lexer.Lexer) *Parser {
     }
 
     p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
-    p.registerPrefix(token.IDENT, p.parseIdentifier)
-    p.registerPrefix(token.INT,   p.parseIntegerLiteral)
-    p.registerPrefix(token.BANG,  p.parsePrefixExpression)
-    p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+    p.registerPrefix(token.IDENT,  p.parseIdentifier)
+    p.registerPrefix(token.INT,    p.parseIntegerLiteral)
+    p.registerPrefix(token.BANG,   p.parsePrefixExpression)
+    p.registerPrefix(token.MINUS,  p.parsePrefixExpression)
+    p.registerPrefix(token.TRUE,   p.parseBoolean)
+    p.registerPrefix(token.FALSE,  p.parseBoolean)
+    p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
+    p.registerPrefix(token.IF,     p.parseIfExpression)
 
     p.infixParseFns  = make(map[token.TokenType]infixParseFn)
     p.registerInfix(token.PLUS,     p.parseInfixExpression)
     p.registerInfix(token.MINUS,    p.parseInfixExpression)
-    p.registerInfix(token.SLASH,    p.parseInfixExpression)
     p.registerInfix(token.ASTERISK, p.parseInfixExpression)
+    p.registerInfix(token.SLASH,    p.parseInfixExpression)
     p.registerInfix(token.EQ,       p.parseInfixExpression)
     p.registerInfix(token.NOT_EQ,   p.parseInfixExpression)
     p.registerInfix(token.LT,       p.parseInfixExpression)
@@ -102,9 +106,9 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) ParseStatement() ast.Statement {
     switch p.curTok.Type {
-    case token.LET:    return p.ParseLetStatement()
-    case token.RETURN: return p.ParseReturnStatement()
-    default:           return p.ParseExpressionStatement()
+        case token.LET:    return p.ParseLetStatement()
+        case token.RETURN: return p.ParseReturnStatement()
+        default:           return p.ParseExpressionStatement()
     }
 }
 
@@ -189,7 +193,11 @@ func (p *Parser) registerInfix (tokenType token.TokenType, fn infixParseFn) {
     p.infixParseFns[tokenType] = fn
 }
 
+func MSG() string { return "xxxxx" }
+
 func (p *Parser) ParseExpressionStatement() *ast.ExpressionStatement {
+    defer untrace(trace("ParseExpressionStatement"))
+
     stmt := &ast.ExpressionStatement{Token : p.curTok}
 
     stmt.Expression = p.parseExpression(LOWEST)
@@ -202,6 +210,8 @@ func (p *Parser) ParseExpressionStatement() *ast.ExpressionStatement {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
+    defer untrace(trace("ParseExpression"))
+
     prefixfn := p.prefixParseFns[p.curTok.Type]
     if prefixfn == nil {
         p.noPrefixParseFnError(p.curTok.Type)
@@ -210,23 +220,27 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
     leftExp := prefixfn()
 
     for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
-         infix := p.infixParseFns[p.peekTok.Type]
-         if infix == nil {
+         infixfn := p.infixParseFns[p.peekTok.Type]
+         if infixfn == nil {
               return leftExp
          }
 
          p.NextToken()
-         leftExp = infix(leftExp)
+         leftExp = infixfn(leftExp)
     }
     
     return leftExp
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
+    defer untrace(trace("parseIdentifier"))
+
     return &ast.Identifier{Token : p.curTok, Value : p.curTok.Literal}
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
+    defer untrace(trace("parseIntegerLiteral"))
+
     it := &ast.IntegerLiteral{Token : p.curTok}
 
     value, err := strconv.ParseInt(p.curTok.Literal, 0, 64)
@@ -240,7 +254,15 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
     return it
 }
 
+func (p *Parser) parseBoolean() ast.Expression {
+    defer untrace(trace("parseBoolean"))
+
+    return &ast.Boolean{Token : p.curTok, Value : p.curTokenIs(token.TRUE)}
+}
+
 func (p *Parser) parsePrefixExpression() ast.Expression {
+    defer untrace(trace("parsePrefixExpression"))
+
     expression := &ast.PrefixExpression{
         Token : p.curTok,
         Operator : p.curTok.Literal,
@@ -253,6 +275,8 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+    defer untrace(trace("parseInfixExpression"))
+
     expression := &ast.InfixExpression {
         Token    : p.curTok,
         Operator : p.curTok.Literal,
@@ -264,4 +288,68 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
     expression.Right = p.parseExpression(precedence)
 
     return expression
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+    defer untrace(trace("parseGroupedExpression"))
+
+    p.NextToken()
+    exp := p.parseExpression(LOWEST)
+
+    if !p.expectPeek(token.RPAREN) {
+        return nil
+    }
+
+    return exp
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+    defer untrace(trace("parseIfExpression"))
+
+    expression := &ast.IfExpression{Token : p.curTok}
+
+    if !p.expectPeek(token.LPAREN) {
+        return nil
+    }
+
+    p.NextToken()
+    expression.Condition = p.parseExpression(LOWEST)
+
+    if !p.expectPeek(token.RPAREN) {
+        return nil
+    }
+
+    if !p.expectPeek(token.LBRACE) {
+        return nil
+    }
+
+    expression.Consequence = p.parseBlockStatement()
+
+    if p.peekTokenIs(token.ELSE) {
+        p.NextToken()
+
+        if !p.expectPeek(token.LBRACE) {
+            return nil
+        }
+
+        expression.Alternative = p.parseBlockStatement()
+    }
+
+    return expression
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+    block := &ast.BlockStatement{Token : p.curTok}
+    block.Statements = []ast.Statement{}
+
+    p.NextToken()
+    for !p.curTokenIs(token.RBRACE) {
+        stmt := p.ParseStatement()
+        if stmt != nil {
+            block.Statements = append(block.Statements, stmt)
+        }
+        p.NextToken()
+    }
+
+    return block
 }
