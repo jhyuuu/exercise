@@ -87,6 +87,84 @@ func TestBangOperator(t *testing.T) {
     }
 }
 
+func TestIfElseExpression(t *testing.T) {
+    tests := []struct {
+        input string
+        expected interface{}
+    } {
+        {"if (true) { 10 }", 10},
+        {"if (false) { 10 }", nil},
+        {"if (1) { 10 }", 10},
+        {"if (0) { 10 }", nil},
+        {"if (1 < 2) { 10 }", 10},
+        {"if (1 > 2) { 10 }", nil},
+        {"if (1 > 2) { 10 } else { 20 }", 20},
+        {"if (1 < 2) { 10 } else { 20 }", 10},
+        {"if (5 * 5 + 10 > 34) { 99 } else { 100 }", 99},
+        {"if ((1000 / 2) + 250 * 2 == 1000) { 9999 }", 9999},
+    }
+
+    for _, tt := range tests {
+        evaluated := testEval(tt.input)
+        integer, ok := tt.expected.(int)
+        if ok {
+            testIntegerObject(t, evaluated, int64(integer))
+        } else {
+            testNullObject(t, evaluated)
+        }
+    }
+}
+
+func TestReturnStatements(t *testing.T) {
+    tests := []struct {
+        input    string
+        expected int64
+    }{
+        {"return 10;", 10},
+        {"return 10; 9;", 10},
+        {"return 2 * 5; 9;", 10},
+        {"9; return 2 * 5; 9;", 10},
+        {"if (10 > 1) { return 10; }", 10},
+        {
+            `
+            if (10 > 1) {
+              if (10 > 1) {
+                return 10;
+              }
+          
+              return 1;
+            }
+            `,
+            10,
+        },
+        // {
+        //     `
+        //     let f = fn(x) {
+        //       return x;
+        //       x + 10;
+        //     };
+        //     f(10);`,
+        //     10,
+        // },
+        // {
+        //     `
+        //     let f = fn(x) {
+        //        let result = x + 10;
+        //        return result;
+        //        return 10;
+        //     };
+        //     f(10);`,
+        //     20,
+        // },
+    }
+
+    for _, tt := range tests {
+        evaluated := testEval(tt.input)
+        testIntegerObject(t, evaluated, tt.expected)
+    }
+}
+
+
 func testEval(input string) object.Object {
     l := lexer.New(input)
     p := parser.New(l)
@@ -120,6 +198,15 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
     if result.Value != expected {
         t.Errorf("object has wrong value. got=%t, want=%t",
                 result.Value, expected)
+        return false
+    }
+
+    return true
+}
+
+func testNullObject(t *testing.T, expected object.Object) bool {
+    if expected != NULL {
+        t.Errorf("object is not NULL. got=%T (%+v)", expected, expected)
         return false
     }
 

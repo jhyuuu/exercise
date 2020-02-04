@@ -44,3 +44,9 @@ type Null struct {}
 func (n *Null) Type() ObjectType { return NULL_OBJ }
 func (n *Null) Inspect() string { return "null" }
 
+type ReturnObject struct {
+    Value Object
+}
+
+func (ro *ReturnObject) Type() ObjectType { return RETURN_VALUE_OBJ }
+func (ro *ReturnObject) Inspect() string { return ro.Value.Inspect() }
