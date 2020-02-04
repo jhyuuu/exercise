@@ -50,3 +50,11 @@ type ReturnObject struct {
 
 func (ro *ReturnObject) Type() ObjectType { return RETURN_VALUE_OBJ }
 func (ro *ReturnObject) Inspect() string { return ro.Value.Inspect() }
+
+type ErrorObject struct {
+    Message string
+}
+
+func (eo *ErrorObject) Type() ObjectType { return ERROR_OBJ }
+func (eo *ErrorObject) Inspect() string { return "ERROR: " + eo.Message }
+
