@@ -6,8 +6,8 @@ import (
     "os/user"
 
     "monkey/repl"
-    "monkey/lexer"
-    "monkey/parser"
+    // "monkey/lexer"
+    // "monkey/parser"
     // "monkey/ast"
 )
 
@@ -21,12 +21,13 @@ func main() {
         user.Username)
 
 
-    input := "5 + 3 * 2"
-    l := lexer.New(input)
-    p := parser.New(l)
-    program := p.ParseProgram()
-    str := program.String()
-    fmt.Println(str)
+    // DEBUG Code
+    // input := "5 + 3 * 2"
+    // l := lexer.New(input)
+    // p := parser.New(l)
+    // program := p.ParseProgram()
+    // str := program.String()
+    // fmt.Println(str)
 
     repl.Start(os.Stdin, os.Stdout)
 }
