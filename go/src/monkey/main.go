@@ -10,6 +10,7 @@ import (
     "monkey/parser"
     // "monkey/ast"
     "monkey/evaluator"
+    "monkey/object"
 )
 
 
@@ -23,13 +24,14 @@ func main() {
 
 
     // DEBUG Code
+    env := object.NewEnvironment()
     input := ""
     l := lexer.New(input)
     p := parser.New(l)
     program := p.ParseProgram()
     str := program.String()
     fmt.Println(str)
-    evaluator.Eval(program)
+    evaluator.Eval(program, env)
 
     repl.Start(os.Stdin, os.Stdout)
 }

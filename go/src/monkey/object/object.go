@@ -1,9 +1,11 @@
 package object
 
 import (
-    // "bytes"
+    "bytes"
     "fmt"
-    // "strings"
+    "strings"
+
+    "monkey/ast"
 )
 
 type ObjectType string
@@ -58,3 +60,27 @@ type ErrorObject struct {
 func (eo *ErrorObject) Type() ObjectType { return ERROR_OBJ }
 func (eo *ErrorObject) Inspect() string { return "ERROR: " + eo.Message }
 
+type FunctionObject struct {
+    Parameters []*ast.Identifier
+    Body       *ast.BlockStatement
+    Env        *Environment
+}
+
+func (fo *FunctionObject) Type() ObjectType { return FUNCTION_OBJ }
+func (fo *FunctionObject) Inspect() string {
+    var out bytes.Buffer
+
+    params := []string{}
+    for _, p := range fo.Parameters {
+        params = append(params, p.String())
+    }
+
+    out.WriteString("fn")
+    out.WriteString("(")
+    out.WriteString(strings.Join(params, ", "))
+    out.WriteString(") {\n")
+    out.WriteString(fo.Body.String())
+    out.WriteString("\n")
+
+    return out.String()
+}
