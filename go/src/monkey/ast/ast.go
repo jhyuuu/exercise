@@ -149,6 +149,21 @@ func (il *IntegerLiteral) String() string {
 
 func (il *IntegerLiteral) expressionNode() { }
 
+type StringLiteral struct {
+    Token token.Token
+    Value string
+}
+
+func (sl *StringLiteral) TokenLiteral() string {
+    return sl.Token.Literal
+}
+
+func (sl *StringLiteral) String() string {
+    return sl.Token.Literal
+}
+
+func (sl *StringLiteral) expressionNode() {}
+
 type Boolean struct {
     Token token.Token
     Value bool
@@ -304,8 +319,6 @@ type BlockStatement struct {
     Statements []Statement
 }
 
-func (bs *BlockStatement) statementNode() {}
-
 func (bs *BlockStatement) TokenLiteral() string {
     return bs.Token.Literal
 }
@@ -319,3 +332,31 @@ func (bs *BlockStatement) String() string {
 
     return out.String()
 }
+
+func (bs *BlockStatement) statementNode() {}
+
+type ArrayLiteral struct {
+    Token token.Token // the '[' token
+    Elements []Expression
+}
+
+func (al *ArrayLiteral) TokenLiteral() string {
+    return al.Token.Literal
+}
+
+func (al *ArrayLiteral) String() string {
+    var out bytes.Buffer
+
+    elements := []string{}
+    for _, e := range al.Elements {
+        elements = append(elements, e.String())
+    }
+
+    out.WriteString("[")
+    out.WriteString(strings.Join(elements, ", "))
+    out.WriteString("]")
+
+    return out.String()
+}
+
+func (al *ArrayLiteral) expressionNode() {}
