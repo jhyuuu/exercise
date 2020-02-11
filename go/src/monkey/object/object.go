@@ -4,6 +4,7 @@ import (
     "bytes"
     "fmt"
     "strings"
+    "hash/fnv"
 
     "monkey/ast"
 )
@@ -24,7 +25,17 @@ const (
     BUILDTIN_OBJ = "BUILTIN"
 
     ARRAY_OBJ = "ARRAY"
+    HASH_OBJ  = "HASH"
 )
+
+type HashKey struct {
+    Type  ObjectType
+    Value uint64
+}
+
+type Hashable interface {
+    GenHashKey() HashKey
+}
 
 type Object interface {
     Type() ObjectType
@@ -121,6 +132,54 @@ func (ao *ArrayObject) Inspect() string {
     out.WriteString("[")
     out.WriteString(strings.Join(elements, ", "))
     out.WriteString("]")
+
+    return out.String()
+}
+
+func (b *Boolean) GenHashKey() HashKey {
+    var value uint64
+
+    if b.Value {
+        value = 1
+    } else {
+        value = 0
+    }
+
+    return HashKey{Type : b.Type(), Value : value}
+}
+
+func (i *Integer) GenHashKey() HashKey {
+    return HashKey{Type : i.Type(), Value : uint64(i.Value)}
+}
+
+func (s *String) GenHashKey() HashKey {
+    h := fnv.New64a()
+    h.Write([]byte(s.Value))
+
+    return HashKey{Type : s.Type(), Value : h.Sum64()}
+}
+
+type HashPair struct {
+    Key   Object
+    Value Object
+}
+
+type HashObject struct {
+    Pairs map[HashKey]HashPair
+}
+
+func (ho *HashObject) Type() ObjectType { return HASH_OBJ }
+func (ho *HashObject) Inspect() string {
+    var out bytes.Buffer
+
+    pairs := []string{}
+    for _, pair := range ho.Pairs {
+        pairs = append(pairs, pair.Key.Inspect() + ": " + pair.Value.Inspect())
+    }
+
+    out.WriteString("{")
+    out.WriteString(strings.Join(pairs, ", "))
+    out.WriteString("}")
 
     return out.String()
 }
