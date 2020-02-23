@@ -94,13 +94,7 @@ func BuiltinFuncPush(args ...object.Object) object.Object {
             newElements := make([]object.Object, length + 1, length + 1)
             copy(newElements, arg.Elements)
             newElements[length] = args[1]
-            // if length > 0 {
-            //     newElements := make([]object.Object, length - 1, length - 1)
-            //     copy(newElements, arg.Elements[1:length])
-            //     return &object.ArrayObject{Elements : newElements}
-            // } else {
-            //     return NULL
-            // }
+
             return &object.ArrayObject{Elements : newElements}
         default:
             return newErrorObejct("argument to `push` not supported, got %s", arg.Type())
