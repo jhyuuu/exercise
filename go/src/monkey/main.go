@@ -34,5 +34,5 @@ func main() {
     evaluator.Eval(program, env)
 
 
-    repl.Start(os.Stdin, os.Stdout)
+    repl.StartCompile(os.Stdin, os.Stdout)
 }

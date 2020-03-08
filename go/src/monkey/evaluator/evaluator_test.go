@@ -296,22 +296,22 @@ func TestBuiltinFunctions(t *testing.T) {
                 t.Errorf("wrong error message. expected=%q, got=%q",
                     expected, errObj.Message)
             }
-        // case []int:
-        //     array, ok := evaluated.(*object.Array)
-        //     if !ok {
-        //         t.Errorf("obj not Array. got=%T (%+v)", evaluated, evaluated)
-        //         continue
-        //     }
+        case []int:
+            array, ok := evaluated.(*object.ArrayObject)
+            if !ok {
+                t.Errorf("obj not Array. got=%T (%+v)", evaluated, evaluated)
+                continue
+            }
 
-        //     if len(array.Elements) != len(expected) {
-        //         t.Errorf("wrong num of elements. want=%d, got=%d",
-        //             len(expected), len(array.Elements))
-        //         continue
-        //     }
+            if len(array.Elements) != len(expected) {
+                t.Errorf("wrong num of elements. want=%d, got=%d",
+                    len(expected), len(array.Elements))
+                continue
+            }
 
-        //     for i, expectedElem := range expected {
-        //         testIntegerObject(t, array.Elements[i], int64(expectedElem))
-        //     }
+            for i, expectedElem := range expected {
+                testIntegerObject(t, array.Elements[i], int64(expectedElem))
+            }
         }
     }
 }
