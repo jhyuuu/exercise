@@ -220,3 +220,16 @@ func (m *Macro) Inspect() string {
     
     return out.String()
 }
+
+// utility functions
+func IsTruthy(obj Object) bool {
+    switch obj := obj.(type) {
+        case *Boolean:
+            return obj.Value
+        case *Null:
+            return false
+        
+        default:
+            return true
+    }
+}

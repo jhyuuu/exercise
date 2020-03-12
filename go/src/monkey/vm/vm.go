@@ -10,6 +10,7 @@ import (
 
 var True  = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+var Null  = &object.Null{}
 
 const StackSize = 2048
 
@@ -93,6 +94,11 @@ func (vm *VM) Run() error {
                 if err != nil {
                     return err
                 }
+            case code.OpNull:
+                err := vm.push(Null)
+                if err != nil {
+                    return err
+                }
             case code.OpMinus:
                 err := vm.executeMinusOperator()
                 if err != nil {
@@ -102,6 +108,18 @@ func (vm *VM) Run() error {
                 err := vm.executeBangOperator()
                 if err != nil {
                     return err
+                }
+            case code.OpJump:
+                pos := code.ReadUint16(vm.instructions[ip+1:])
+                ip = int(pos) - 1
+            case code.OpJumpNotTruthy:
+                pos := code.ReadUint16(vm.instructions[ip+1:])
+                condition := vm.pop()
+
+                if object.IsTruthy(condition) {
+                    ip += 2
+                } else {
+                    ip = int(pos) - 1
                 }
         }
     }
@@ -214,6 +232,8 @@ func (vm *VM) executeBangOperator() error {
         case True:
             return vm.push(False)
         case False:
+            return vm.push(True)
+        case Null:
             return vm.push(True)
         default:
             return vm.push(False)
