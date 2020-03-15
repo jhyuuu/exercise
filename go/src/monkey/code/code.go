@@ -27,10 +27,16 @@ const (
     OpBang
     OpJumpNotTruthy
     OpJump
+    OpGetGlobal
+    OpSetGlobal
 )
 
-const OpConstantWidth int = 2
-const OpJumpWidth int = 2
+const (
+    OpConstantWidth  int = 2
+    OpJumpWidth      int = 2
+    OpGetGlobalWidth int = 2
+    OpSetGlobalWidth int = 2
+)
 
 type Definition struct {
     Name          string
@@ -54,6 +60,8 @@ var definitions = map[Opcode] *Definition {
     OpBang:         {"OpBang",          []int{}},
     OpJumpNotTruthy:{"OpJumpNotTruthy", []int{OpJumpWidth}},
     OpJump:         {"OpJump",          []int{OpJumpWidth}},
+    OpGetGlobal:    {"OpGetGlobal",     []int{OpGetGlobalWidth}},
+    OpSetGlobal:    {"OpSetGlobal",     []int{OpSetGlobalWidth}},
 }
 
 func Lookup(op byte) (*Definition, error) {

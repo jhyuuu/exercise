@@ -12,10 +12,14 @@ var True  = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
 var Null  = &object.Null{}
 
-const StackSize = 2048
+const (
+    GlobalSize = 65536
+    StackSize  = 2048
+)
 
 type VM struct {
     constants    []object.Object
+    globals      []object.Object
     instructions code.Instructions
 
     stack []object.Object
@@ -26,10 +30,17 @@ func New(bytecode *compiler.Bytecode) *VM {
     return &VM{
         instructions: bytecode.Instructions,
         constants:    bytecode.Constants,
+        globals:      make([]object.Object, GlobalSize),
 
         stack: make([]object.Object, StackSize),
         sp:    0,
     }
+}
+
+func NewWithGlobalStore(bytecode *compiler.Bytecode, g []object.Object) *VM {
+    vm := New(bytecode)
+    vm.globals = g
+    return vm
 }
 
 func (vm *VM) LastPoppedStackElem() object.Object {
@@ -117,9 +128,22 @@ func (vm *VM) Run() error {
                 condition := vm.pop()
 
                 if object.IsTruthy(condition) {
-                    ip += 2
+                    ip += code.OpJumpWidth
                 } else {
                     ip = int(pos) - 1
+                }
+            case code.OpSetGlobal:
+                globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+                ip += 2
+
+                vm.globals[globalIndex] = vm.pop()
+            case code.OpGetGlobal:
+                globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+                ip += 2
+
+                err := vm.push(vm.globals[globalIndex])
+                if err != nil {
+                    return err
                 }
         }
     }
