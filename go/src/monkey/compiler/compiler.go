@@ -2,6 +2,7 @@ package compiler
 
 import (
     "fmt"
+    "sort"
 
     "monkey/ast"
     "monkey/code"
@@ -183,6 +184,19 @@ func (c *Compiler) Compile(node ast.Node) error {
                     return fmt.Errorf("unknown operator %s", node.Operator)
             }
 
+        case *ast.IndexExpression:
+            err := c.Compile(node.Left)
+            if err != nil {
+                return err
+            }
+
+            err = c.Compile(node.Index)
+            if err != nil {
+                return err
+            }
+
+            c.emit(code.OpIndex)
+
         case *ast.Identifier:
             symbol, ok := c.symbolTable.Resolve(node.Value)
             if !ok {
@@ -202,6 +216,45 @@ func (c *Compiler) Compile(node ast.Node) error {
             } else {
                 c.emit(code.OpFalse)
             }
+
+        case *ast.StringLiteral:
+            str := &object.String{Value: node.Value}
+            constant_pos := c.addConstant(str)
+            c.emit(code.OpConstant, constant_pos)
+
+        case *ast.ArrayLiteral:
+            for _, ele := range node.Elements {
+                err := c.Compile(ele)
+                if err != nil {
+                    return err
+                }
+            }
+
+            c.emit(code.OpArray, len(node.Elements))
+
+        case *ast.HashLiteral:
+            keys := []ast.Expression{}
+            for k := range node.Pairs {
+                keys = append(keys, k)
+            }
+
+            sort.Slice(keys, func(i, j int) bool {
+                return keys[i].String() < keys[j].String()
+            })
+
+            for _, k := range keys {
+                err := c.Compile(k)
+                if err != nil {
+                    return err
+                }
+
+                err = c.Compile(node.Pairs[k])
+                if err != nil {
+                    return err
+                }
+            }
+
+            c.emit(code.OpHash, len(node.Pairs)*2)
     }
 
     return nil
