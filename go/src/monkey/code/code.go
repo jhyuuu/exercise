@@ -48,6 +48,7 @@ const (
     OpSetGlobalWidth int = 2
     OpArrayWidth     int = 2
     OpHashWidth      int = 2
+    OpCallWidth      int = 1
 )
 
 type Definition struct {
@@ -79,7 +80,7 @@ var definitions = map[Opcode] *Definition {
     OpSetLocal:     {"OpSetLocal",      []int{OpSetLocalWidth}},
     OpArray:        {"OpArray",         []int{OpArrayWidth}},
     OpHash:         {"OpHash",          []int{OpHashWidth}},
-    OpCall:         {"OpCall",          []int{}},
+    OpCall:         {"OpCall",          []int{OpCallWidth}},
     OpReturnValue:  {"OpReturnValue",   []int{}},
     OpReturn:       {"OpReturn",        []int{}},
 }
