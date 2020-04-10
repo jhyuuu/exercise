@@ -37,18 +37,20 @@ const (
     OpCall
     OpReturnValue
     OpReturn
+    OpGetBuiltin
 )
 
 const (
-    OpConstantWidth  int = 2
-    OpJumpWidth      int = 2
-    OpGetGlobalWidth int = 2
-    OpSetLocalWidth  int = 1
-    OpGetLocalWidth  int = 1
-    OpSetGlobalWidth int = 2
-    OpArrayWidth     int = 2
-    OpHashWidth      int = 2
-    OpCallWidth      int = 1
+    OpConstantWidth     int = 2
+    OpJumpWidth         int = 2
+    OpGetGlobalWidth    int = 2
+    OpSetLocalWidth     int = 1
+    OpGetLocalWidth     int = 1
+    OpSetGlobalWidth    int = 2
+    OpArrayWidth        int = 2
+    OpHashWidth         int = 2
+    OpCallWidth         int = 1
+    OpGetBuiltinWidth   int = 1
 )
 
 type Definition struct {
@@ -83,6 +85,7 @@ var definitions = map[Opcode] *Definition {
     OpCall:         {"OpCall",          []int{OpCallWidth}},
     OpReturnValue:  {"OpReturnValue",   []int{}},
     OpReturn:       {"OpReturn",        []int{}},
+    OpGetBuiltin:   {"OpGetBuiltin",    []int{OpGetBuiltinWidth}},
 }
 
 func Lookup(op byte) (*Definition, error) {

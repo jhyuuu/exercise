@@ -14,12 +14,12 @@ var (
 )
 
 var builtins = map[string]*object.BuiltinObject{
-    "len"    : &object.BuiltinObject {Fn : BuiltinFuncLen},
-    "puts"   : &object.BuiltinObject {Fn : BuiltinFuncPuts},
-    "first"  : &object.BuiltinObject {Fn : BuiltinFuncFirst},
-    "last"   : &object.BuiltinObject {Fn : BuiltinFuncLast},
-    "rest"   : &object.BuiltinObject {Fn : BuiltinFuncRest},
-    "push"   : &object.BuiltinObject {Fn : BuiltinFuncPush},
+    "len"    : object.GetBuiltinByName("len"),
+    "puts"   : object.GetBuiltinByName("puts"),
+    "first"  : object.GetBuiltinByName("first"),
+    "last"   : object.GetBuiltinByName("last"),
+    "rest"   : object.GetBuiltinByName("rest"),
+    "push"   : object.GetBuiltinByName("push"),
 }
 
 func Eval(node ast.Node, env *object.Environment) object.Object {
@@ -387,7 +387,11 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
             evaluated := Eval(fn.Body, extendedEnv)
             return unwrapReturnValue(evaluated)
         case *object.BuiltinObject:
-            return fn.Fn(args...)
+            result := fn.Fn(args...)
+            if result == nil {
+                return NULL
+            }
+            return result
         default:
             return newErrorObejct("not a function: %s", fn.Type())
     }
