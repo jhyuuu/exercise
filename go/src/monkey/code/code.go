@@ -38,19 +38,18 @@ const (
     OpReturnValue
     OpReturn
     OpGetBuiltin
+    OpClosure
+    OpGetFree
 )
 
 const (
-    OpConstantWidth     int = 2
-    OpJumpWidth         int = 2
-    OpGetGlobalWidth    int = 2
-    OpSetLocalWidth     int = 1
-    OpGetLocalWidth     int = 1
-    OpSetGlobalWidth    int = 2
-    OpArrayWidth        int = 2
-    OpHashWidth         int = 2
-    OpCallWidth         int = 1
-    OpGetBuiltinWidth   int = 1
+    ConstWidth         int = 2 // const pool max size is 65536
+    GlobalWidth        int = 2 // max number of global variables is 65536
+    LocalWidth         int = 1 // max number of local variables is 256
+    FreeWidth          int = 1 // max number of free variables is 256
+    BuiltinWidth       int = 1 // max number of builtin functions is 256
+    InstructionWidth   int = 2 // max number of instructions is 65536
+    CallParamWidth     int = 1 // max number of parameters of each function is 256
 )
 
 type Definition struct {
@@ -59,7 +58,7 @@ type Definition struct {
 }
 
 var definitions = map[Opcode] *Definition {
-    OpConstant:     {"OpConstant",      []int{OpConstantWidth}},
+    OpConstant:     {"OpConstant",      []int{ConstWidth}},
     OpPop:          {"OpPop",           []int{}},
     OpAdd:          {"OpAdd",           []int{}},
     OpSub:          {"OpSub",           []int{}},
@@ -74,18 +73,20 @@ var definitions = map[Opcode] *Definition {
     OpMinus:        {"OpMinus",         []int{}},
     OpBang:         {"OpBang",          []int{}},
     OpIndex:        {"OpIndex",         []int{}},
-    OpJumpNotTruthy:{"OpJumpNotTruthy", []int{OpJumpWidth}},
-    OpJump:         {"OpJump",          []int{OpJumpWidth}},
-    OpGetGlobal:    {"OpGetGlobal",     []int{OpGetGlobalWidth}},
-    OpSetGlobal:    {"OpSetGlobal",     []int{OpSetGlobalWidth}},
-    OpGetLocal:     {"OpGetLocal",      []int{OpGetLocalWidth}},
-    OpSetLocal:     {"OpSetLocal",      []int{OpSetLocalWidth}},
-    OpArray:        {"OpArray",         []int{OpArrayWidth}},
-    OpHash:         {"OpHash",          []int{OpHashWidth}},
-    OpCall:         {"OpCall",          []int{OpCallWidth}},
+    OpJumpNotTruthy:{"OpJumpNotTruthy", []int{InstructionWidth}},
+    OpJump:         {"OpJump",          []int{InstructionWidth}},
+    OpGetGlobal:    {"OpGetGlobal",     []int{GlobalWidth}},
+    OpSetGlobal:    {"OpSetGlobal",     []int{GlobalWidth}},
+    OpGetLocal:     {"OpGetLocal",      []int{LocalWidth}},
+    OpSetLocal:     {"OpSetLocal",      []int{LocalWidth}},
+    OpArray:        {"OpArray",         []int{GlobalWidth}},
+    OpHash:         {"OpHash",          []int{GlobalWidth}},
+    OpCall:         {"OpCall",          []int{CallParamWidth}},
     OpReturnValue:  {"OpReturnValue",   []int{}},
     OpReturn:       {"OpReturn",        []int{}},
-    OpGetBuiltin:   {"OpGetBuiltin",    []int{OpGetBuiltinWidth}},
+    OpGetBuiltin:   {"OpGetBuiltin",    []int{BuiltinWidth}},
+    OpClosure:      {"OpClosure",       []int{ConstWidth, FreeWidth}},
+    OpGetFree:      {"OpGetFree",       []int{FreeWidth}},
 }
 
 func Lookup(op byte) (*Definition, error) {
@@ -187,6 +188,8 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
             return def.Name
         case 1:
             return fmt.Sprintf("%s %d", def.Name, operands[0])
+        case 2:
+            return fmt.Sprintf("%s %d %d", def.Name, operands[0], operands[1])
     }
 
     return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)
